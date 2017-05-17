@@ -1,0 +1,29 @@
+doctype html
+head(lang="eng")
+	title home
+	link(href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet")
+	link(href="../css/index.css" rel="stylesheet")
+body
+	.menu-outer
+		.menu-inner
+			.menu-title Menu
+			- let letters = 'abcdefghijklmnopqrstuvwxyz'.split('');
+			.show-container
+				each letter in letters
+					if shows[letter] !== undefined
+						.letter-separate #{letter.toUpperCase()}
+						each show in shows[letter]
+							.show
+								a(href="#") #{show["show"]}
+			.letter-nav
+				each letter in letters
+					.letter #{letter}
+	.player-outer
+		.player-inner
+			.ep-title Nothing Selected
+			.ep-show Choose a Video
+			.player
+				video(id="video" controls preload="metadata")
+					source(src="" type="video/webm")
+					track(label="English" kind="subtitles" srclang="en" src="" default)
+
