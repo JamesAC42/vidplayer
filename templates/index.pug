@@ -3,6 +3,9 @@ head(lang="eng")
 	title home
 	link(href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet")
 	link(href="../css/index.css" rel="stylesheet")
+	script(src="../js/jquery-3.2.1.min.js")
+	script(src="../js/animatescroll.min.js")
+	script(src="../js/index.js")
 body
 	.menu-outer
 		.menu-inner
@@ -11,19 +14,27 @@ body
 			.show-container
 				each letter in letters
 					if shows[letter] !== undefined
-						.letter-separate #{letter.toUpperCase()}
+						.letter-separate(id=letter) #{letter.toUpperCase()}
 						each show in shows[letter]
 							.show
 								a(href="#") #{show["show"]}
+							.ep-list
+								ul
+									each episode in show["eps"]
+										li !{episode}
+								
 			.letter-nav
 				each letter in letters
-					.letter #{letter}
+					if shows[letter] !== undefined
+						.letter.letter-enabled #{letter}
+					else
+						.letter.letter-disabled #{letter}
 	.player-outer
 		.player-inner
 			.ep-title Nothing Selected
 			.ep-show Choose a Video
 			.player
 				video(id="video" controls preload="metadata")
-					source(src="" type="video/webm")
-					track(label="English" kind="subtitles" srclang="en" src="" default)
+					source(id="video-src" src="" type="video/webm")
+					track(id="sub-src" label="English" kind="subtitles" srclang="en" src="" default)
 

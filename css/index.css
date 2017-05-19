@@ -87,6 +87,29 @@ div.show a{
 div.show a:hover{
 	color:#0FC5E0;
 }
+div.ep-list{
+	width:35vw;
+	text-align:center;
+	padding:0;
+	margin:0;
+	overflow:hidden;
+}
+div.ep-list ul{
+	margin:0;
+	padding:0;
+	list-style-type: none;
+}
+div.ep-list ul li{
+	padding:0;
+	margin:0;
+	font-size:16px;
+	font-family: 'Source Sans Pro', sans-serif;
+	margin-top:10px;
+	cursor:pointer;
+}
+div.ep-list ul li:hover{
+	color:#0FC5E0;
+}
 div.letter-nav{
 	position:absolute;
 	width:20px;
@@ -107,7 +130,10 @@ div.letter{
 	color:grey;
 	transition: all .08s ease-in-out;
 }
-div.letter:hover{
+div.letter-disabled{
+	opacity:0.3;
+}
+div.letter-enabled:hover{
 	transform:scale(2) translate(-2px,0);
 	color:navy;
 }

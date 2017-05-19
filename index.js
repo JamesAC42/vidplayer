@@ -2,14 +2,23 @@ var fs = require('fs');
 var http = require('http');
 var path = require('path');
 var url = require('url');
+var formidable = require("formidable");
 var pug = require('pug');
+var cmd = require('node-cmd');
+var mkdirp = require('mkdirp');
+var srt2vtt = require('srt-to-vtt');
 
-const IGNORE = ['node_modules', 'js', 'css', 'tracks', 'templates', '.git', 'other'];
+const IGNORE = ['node_modules', 'tracks', 'other', 'css', 'js', 'templates'];
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('');
+const VALIDCHAR = 'abcdefghijklmnoqprstuvwxyz-0123456789'.split('');
 
 var server = http.createServer(function(req, res){
 	if(req.method.toLowerCase() == 'get'){
 		displayPage(req,res);
+	}else if(req.method.toLowerCase() == 'post'){
+		if(req.url == '/getTrack'){
+			getTrack(req,res);
+		}
 	}
 });
 
@@ -21,16 +30,24 @@ function displayPage(req, res){
 	switch(extname){
 		case '.js':
 			contentType = 'text/javascript';
+			break;
 		case '.css':
 			contentType = 'text/css';
+			break;
+		case '.mkv':
+			contentType = 'video/webm';
+			break;
+		case '.vtt':
+			contentType = 'text/vtt';
+			break;
 	}
 	if(req.url == "/"){
-		var p = "./";
+		var p = "C:/Users/james/videos/anime/";
 		var fileSys = {};
 		var dirs = getDirectories(p).filter(item=>{return(IGNORE.indexOf(item) == -1)});
 
 		Promise.all(dirs.map(dir => new Promise ((done, reject) => {
-			var p = './' + dir;
+			var p = "C:/Users/james/videos/anime/" + dir;
 			fs.readdir(p, (err, files) => {
 				if (err) {
 					throw err;
@@ -48,20 +65,19 @@ function displayPage(req, res){
 			});
 		}))).then(results => {
 			var abcList = {};
-			console.log(results);
 			results.forEach((item, index) => {
 				let showTitle = item["show"];
-				if(ALPHABET.indexOf(showTitle[0]) == -1){
+				if(ALPHABET.indexOf(showTitle[0].toLowerCase()) == -1){
 					if(typeof abcList["#"] == 'undefined'){
 						abcList["#"] = [showTitle];
 					}else{
 						abcList["#"].push(showTitle);
 					}
 				}else{
-					if(typeof abcList[showTitle[0]] == 'undefined'){
-						abcList[showTitle[0]] = [item];
+					if(typeof abcList[showTitle[0].toLowerCase()] == 'undefined'){
+						abcList[showTitle[0].toLowerCase()] = [item];
 					}else{
-						abcList[showTitle[0]].push(item);
+						abcList[showTitle[0].toLowerCase()].push(item);
 					}
 				}
 			});
@@ -94,6 +110,38 @@ function displayPage(req, res){
 function getDirectories (srcpath) {
   return fs.readdirSync(srcpath)
     .filter(file => fs.lstatSync(path.join(srcpath, file)).isDirectory());
+}
+
+function getTrack(req,res){
+	var form = new formidable.IncomingForm();
+	form.parse(req, function(err, fields, files){
+		var show = fields.show;
+		var episode = fields.episode;
+		let episodepath = show + '/' + episode;
+		let episodename = episode.split('.')[0];
+		let trackpath = 'tracks/' + show;
+		mkdirp(trackpath, err=>{
+			if(err){
+				console.log(err);
+			}else{
+				trackpath = trackpath + "/" + episodename;
+				if (fs.existsSync(trackpath + '.vtt')) {
+				    res.end();
+				} else {
+					cmd.get('mkv-subtitle-extractor ' + episodepath, function(err, data, stderr){
+						let ogtrackpath = episodepath.split('.')[0] + '.srt';
+						fs.rename(ogtrackpath, trackpath + '.srt', function(err){
+							fs.createReadStream(trackpath + '.srt')
+								.pipe(srt2vtt())
+								.pipe(fs.createWriteStream(trackpath + '.vtt'));
+							res.end();
+						})
+					});
+				}
+			}
+		});
+		res.end();
+	});
 }
 
 server.listen(5000);
